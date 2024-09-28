@@ -1,0 +1,124 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract NFTMarketplace {
+    struct NFT {
+        uint256 id;
+        string name;
+        string symbol;
+        string imgURL;
+        address owner;
+        uint256 price;
+        bool isListed;
+    }
+
+    NFT[] public nfts; // Array to store all NFTs
+    mapping(address => uint256[]) public userNFTs; // Mapping to store user's NFTs
+
+    event NFTCreated(uint256 id, string name, string symbol, string imgURL, address owner);
+    event NFTListed(uint256 id, uint256 price, address owner);
+    event NFTSold(uint256 id, address buyer, address seller, uint256 price);
+
+    // Function to create a new NFT
+    function createNFT(string memory name, string memory symbol, string memory imgURL) public {
+        uint256 tokenId = nfts.length;
+
+        NFT memory newNFT = NFT(tokenId, name, symbol, imgURL, msg.sender, 0, false);
+        nfts.push(newNFT);
+        userNFTs[msg.sender].push(tokenId);
+
+        emit NFTCreated(tokenId, name, symbol, imgURL, msg.sender);
+    }
+
+    // Function to list an NFT for sale by name
+    function listNFTByName(string memory name, uint256 price) public {
+        uint256 tokenId = findNFTByName(name);
+        require(tokenId != type(uint256).max, "NFT does not exist");
+        require(nfts[tokenId].owner == msg.sender, "You are not the owner");
+        require(price > 0, "Price must be greater than zero");
+
+        nfts[tokenId].price = price;
+        nfts[tokenId].isListed = true;
+
+        emit NFTListed(tokenId, price, msg.sender);
+    }
+
+    // Function to buy an NFT by name
+    function buyNFTByName(string memory name) public payable {
+        uint256 tokenId = findNFTByName(name);
+        require(tokenId != type(uint256).max, "NFT does not exist");
+
+        NFT storage nft = nfts[tokenId];
+        require(nft.isListed, "NFT is not for sale");
+        require(msg.value >= nft.price, "Insufficient funds");
+
+        address seller = nft.owner;
+
+        // Transfer ownership
+        nft.owner = msg.sender;
+        nft.isListed = false;
+
+        // Update user's NFT list
+        removeUserNFT(seller, tokenId);
+        userNFTs[msg.sender].push(tokenId);
+
+        // Transfer funds to seller
+        payable(seller).transfer(msg.value);
+
+        emit NFTSold(tokenId, msg.sender, seller, msg.value);
+    }
+
+    // Function to get NFT details by token ID
+    function getNFTDetails(uint256 tokenId) public view returns (NFT memory) {
+        require(tokenId < nfts.length, "NFT does not exist");
+        return nfts[tokenId];
+    }
+
+    // Function to get all NFTs owned by a user
+    function getUserNFTs(address user) public view returns (uint256[] memory) {
+        return userNFTs[user];
+    }
+
+    // Function to search for NFTs by name
+    function searchNFTByName(string memory name) public view returns (uint256[] memory) {
+        uint256[] memory result = new uint256[](nfts.length);
+        uint256 count = 0;
+
+        for (uint256 i = 0; i < nfts.length; i++) {
+            if (keccak256(abi.encodePacked(nfts[i].name)) == keccak256(abi.encodePacked(name))) {
+                result[count] = nfts[i].id;
+                count++;
+            }
+        }
+
+        // Resize the result array
+        uint256[] memory filteredResult = new uint256[](count);
+        for (uint256 j = 0; j < count; j++) {
+            filteredResult[j] = result[j];
+        }
+
+        return filteredResult;
+    }
+
+    // Internal function to find NFT by name
+    function findNFTByName(string memory name) internal view returns (uint256) {
+        for (uint256 i = 0; i < nfts.length; i++) {
+            if (keccak256(abi.encodePacked(nfts[i].name)) == keccak256(abi.encodePacked(name))) {
+                return nfts[i].id;
+            }
+        }
+        return type(uint256).max; // Return a max value if not found
+    }
+
+    // Internal function to remove NFT from user's list
+    function removeUserNFT(address owner, uint256 tokenId) internal {
+        uint256[] storage userNFTList = userNFTs[owner];
+        for (uint256 i = 0; i < userNFTList.length; i++) {
+            if (userNFTList[i] == tokenId) {
+                userNFTList[i] = userNFTList[userNFTList.length - 1]; // Swap with last
+                userNFTList.pop(); // Remove last
+                break;
+            }
+        }
+    }
+}
