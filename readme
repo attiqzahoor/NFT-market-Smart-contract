@@ -1,1 +1,66 @@
 
+# NFT Marketplace Smart Contract
+
+This NFT Marketplace smart contract allows users to create, list, and buy Non-Fungible Tokens (NFTs) on the Ethereum blockchain. The contract is implemented in Solidity and is compatible with the Ethereum network.
+
+## Features
+
+- **Create NFTs:** Users can create their own NFTs by providing a name, symbol, and image URL.
+- **List NFTs for Sale:** Users can list their NFTs for sale by specifying a price.
+- **Buy NFTs:** Users can purchase NFTs listed on the marketplace.
+- **Transfer Ownership:** Upon purchase, the ownership of the NFT is transferred to the buyer.
+- **Manage User NFTs:** Users can view their own NFTs and search for NFTs by name.
+
+## Smart Contract Functions
+
+### 1. `createNFT(string memory name, string memory symbol, string memory imgURL)`
+- **Description:** Creates a new NFT with the specified name, symbol, and image URL.
+- **Parameters:**
+  - `name`: The name of the NFT.
+  - `symbol`: The symbol of the NFT.
+  - `imgURL`: The image URL of the NFT.
+  
+### 2. `listNFTByName(string memory name, uint256 price)`
+- **Description:** Lists an NFT for sale by its name, setting a specified price.
+- **Parameters:**
+  - `name`: The name of the NFT to list.
+  - `price`: The price at which the NFT will be sold.
+
+### 3. `buyNFTByName(string memory name)`
+- **Description:** Allows users to buy an NFT listed for sale by its name.
+- **Parameters:**
+  - `name`: The name of the NFT to buy.
+- **Requires:** The buyer to send sufficient Ether to cover the price.
+
+### 4. `getNFTDetails(uint256 tokenId)`
+- **Description:** Retrieves the details of a specific NFT using its token ID.
+- **Parameters:**
+  - `tokenId`: The ID of the NFT to retrieve.
+
+### 5. `getUserNFTs(address user)`
+- **Description:** Returns a list of NFT IDs owned by a specific user.
+- **Parameters:**
+  - `user`: The address of the user to query.
+
+### 6. `searchNFTByName(string memory name)`
+- **Description:** Searches for NFTs by their name and returns a list of matching NFT IDs.
+- **Parameters:**
+  - `name`: The name of the NFT to search for.
+
+## Events
+
+- `NFTCreated(uint256 id, string name, string symbol, string imgURL, address owner)`: Emitted when a new NFT is created.
+- `NFTListed(uint256 id, uint256 price, address owner)`: Emitted when an NFT is listed for sale.
+- `NFTSold(uint256 id, address buyer, address seller, uint256 price)`: Emitted when an NFT is sold.
+
+## Usage
+
+1. Deploy the smart contract to an Ethereum network (e.g., Rinkeby, Mainnet).
+2. Call `createNFT()` to create new NFTs.
+3. Use `listNFTByName()` to list NFTs for sale.
+4. Call `buyNFTByName()` to purchase listed NFTs.
+5. Use `getUserNFTs()` to see NFTs owned by a user.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
